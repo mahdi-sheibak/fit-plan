@@ -1,7 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import { bigint, check, date, integer, pgEnum, pgTable, smallint, timestamp, varchar } from 'drizzle-orm/pg-core';
 
-const userGenderEnum = pgEnum('gender', ['man', 'woman', 'unknown']);
+const userGender = pgEnum('gender', ['man', 'woman', 'unknown']);
 
 export const usersTable = pgTable('users', {
   id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
@@ -12,10 +12,10 @@ export const usersTable = pgTable('users', {
   deleted_at: timestamp({ withTimezone: true }).notNull(),
   email: varchar().notNull().unique(),
   phone: varchar({ length: 11 }).unique(),
-  full_name: varchar().notNull(),
-  avatar_url: varchar().notNull(),
+  full_name: varchar({ length: 128 }).notNull(),
+  avatar_url: varchar({ length: 512 }).notNull(),
   height: smallint().notNull(),
-  gender: userGenderEnum().default('unknown'),
+  gender: userGender().default('unknown'),
   birthday: date().notNull(),
 });
 
@@ -26,7 +26,7 @@ export const organizationsTable = pgTable('organizations', {
     .notNull()
     .$onUpdate(() => new Date()),
   deleted_at: timestamp({ withTimezone: true }).notNull(),
-  name: varchar().unique(),
+  name: varchar({ length: 128 }).unique(),
 });
 
 export const coachesTable = pgTable(
@@ -40,9 +40,9 @@ export const coachesTable = pgTable(
     deleted_at: timestamp({ withTimezone: true }).notNull(),
     plan_price: integer().notNull(),
     biography: varchar({ length: 512 }).notNull(),
-    description: varchar().notNull(),
-    user_id: bigint({ mode: 'bigint' }).notNull(), // relation
-    organization_id: bigint({ mode: 'bigint' }).notNull(), // relation
+    description: varchar({ length: 512 }).notNull(),
+    user_id: bigint({ mode: 'bigint' }).notNull(),
+    organization_id: bigint({ mode: 'bigint' }).notNull(),
   },
   table => [check('check_price', sql`${table.plan_price} >= 20000`)],
 );
@@ -58,11 +58,11 @@ export const planRequestsTable = pgTable(
     deleted_at: timestamp({ withTimezone: true }).notNull(),
     weight: smallint().notNull(),
     number_of_sessions: smallint().notNull(),
-    description: varchar().notNull(),
-    left_side_photo: varchar().notNull(),
-    right_side_photo: varchar().notNull(),
-    front_side_photo: varchar().notNull(),
-    back_side_photo: varchar().notNull(),
+    description: varchar({ length: 512 }).notNull(),
+    left_side_photo: varchar({ length: 512 }).notNull(),
+    right_side_photo: varchar({ length: 512 }).notNull(),
+    front_side_photo: varchar({ length: 512 }).notNull(),
+    back_side_photo: varchar({ length: 512 }).notNull(),
   },
   table => [
     check('check_number_of_sessions', sql`${table.number_of_sessions} >= 1`),
@@ -82,9 +82,9 @@ export const plansTable = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
     deleted_at: timestamp({ withTimezone: true }).notNull(),
-    coach_id: bigint({ mode: 'bigint' }).notNull(), // relation
-    customer_id: bigint({ mode: 'bigint' }).notNull(), // relation
-    request_id: bigint({ mode: 'bigint' }).notNull(), // relation
+    coach_id: bigint({ mode: 'bigint' }).notNull(),
+    customer_id: bigint({ mode: 'bigint' }).notNull(),
+    request_id: bigint({ mode: 'bigint' }).notNull(),
     price: integer().notNull(),
     status: planStatus().notNull(),
   },
@@ -98,7 +98,7 @@ export const planSessionsTable = pgTable('plan_sessions', {
     .notNull()
     .$onUpdate(() => new Date()),
   deleted_at: timestamp({ withTimezone: true }).notNull(),
-  plan_id: bigint({ mode: 'bigint' }).notNull(), // relation
+  plan_id: bigint({ mode: 'bigint' }).notNull(),
   title: varchar({ length: 128 }).notNull(),
   description: varchar().notNull(),
 });
@@ -110,9 +110,9 @@ export const planSessionExercisesTable = pgTable('plan_session_exercises', {
     .notNull()
     .$onUpdate(() => new Date()),
   deleted_at: timestamp({ withTimezone: true }).notNull(),
-  plan_session_id: bigint({ mode: 'bigint' }).notNull(), // relation
-  exercise_id: bigint({ mode: 'bigint' }).notNull(), // relation
-  notes: varchar().notNull(),
+  plan_session_id: bigint({ mode: 'bigint' }).notNull(),
+  exercise_id: bigint({ mode: 'bigint' }).notNull(),
+  notes: varchar({ length: 512 }).notNull(),
 });
 
 const planSessionExerciseSetsType = pgEnum('plan_session_exercise_sets_type', ['time', 'drop', 'normal', 'range']);
@@ -124,11 +124,13 @@ export const planSessionExerciseSetsTable = pgTable('plan_session_exercise_sets'
     .notNull()
     .$onUpdate(() => new Date()),
   deleted_at: timestamp({ withTimezone: true }).notNull(),
-  plan_session_exercise_id: bigint({ mode: 'bigint' }).notNull(), // relation
+  plan_session_exercise_id: bigint({ mode: 'bigint' }).notNull(),
   type: planSessionExerciseSetsType().notNull(),
   order: integer().notNull(),
   value: integer().notNull(),
 });
+
+const paymentStatus = pgEnum('plan_status', ['pending', 'complete']);
 
 export const paymentsTable = pgTable('payments', {
   id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
@@ -137,8 +139,8 @@ export const paymentsTable = pgTable('payments', {
     .notNull()
     .$onUpdate(() => new Date()),
   deleted_at: timestamp({ withTimezone: true }).notNull(),
-  plan_id: bigint({ mode: 'bigint' }).notNull(), // relation
-  // status ??
+  plan_id: bigint({ mode: 'bigint' }).notNull(),
+  status: paymentStatus().notNull(),
 });
 
 const exerciseType = pgEnum('exercise_type', ['reps', 'time']);
@@ -150,9 +152,9 @@ export const exercisesTable = pgTable('exercises', {
     .notNull()
     .$onUpdate(() => new Date()),
   deleted_at: timestamp({ withTimezone: true }).notNull(),
-  name: varchar().notNull(),
-  image_url: varchar().notNull(),
-  description: varchar().notNull(),
+  name: varchar({ length: 128 }).notNull(),
+  image_url: varchar({ length: 512 }).notNull(),
+  description: varchar({ length: 512 }).notNull(),
   type: exerciseType().notNull(),
 });
 
