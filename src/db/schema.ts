@@ -1,91 +1,155 @@
-import { relations } from 'drizzle-orm';
-import { integer, pgEnum, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import { bigint, check, date, integer, pgEnum, pgTable, smallint, timestamp, varchar } from 'drizzle-orm/pg-core';
 
-const commonFields = {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+const userGenderEnum = pgEnum('gender', ['man', 'woman', 'unknown']);
+
+export const usersTable = pgTable('users', {
+  id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
   created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp({ withTimezone: true })
     .notNull()
     .$onUpdate(() => new Date()),
   deleted_at: timestamp({ withTimezone: true }).notNull(),
-};
-
-export const usersTable = pgTable('users', {
-  ...commonFields,
   email: varchar().notNull().unique(),
-  phone: varchar().unique().default(''),
+  phone: varchar({ length: 11 }).unique(),
   full_name: varchar().notNull(),
   avatar_url: varchar().notNull(),
-  height: integer().notNull(),
-  gender: integer().notNull(),
-  birthday: timestamp({ withTimezone: true }).notNull(),
+  height: smallint().notNull(),
+  gender: userGenderEnum().default('unknown'),
+  birthday: date().notNull(),
 });
 
 export const organizationsTable = pgTable('organizations', {
-  ...commonFields,
-  name: varchar(),
+  id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true })
+    .notNull()
+    .$onUpdate(() => new Date()),
+  deleted_at: timestamp({ withTimezone: true }).notNull(),
+  name: varchar().unique(),
 });
 
-export const coachesTable = pgTable('coaches', {
-  ...commonFields,
-  plan_price: varchar().notNull(),
-  biography: varchar().notNull(),
-  description: varchar().notNull(),
-  user_id: integer().notNull(), // relation
-  organization_id: integer().notNull(), // relation
-});
+export const coachesTable = pgTable(
+  'coaches',
+  {
+    id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+    deleted_at: timestamp({ withTimezone: true }).notNull(),
+    plan_price: integer().notNull(),
+    biography: varchar({ length: 512 }).notNull(),
+    description: varchar().notNull(),
+    user_id: bigint({ mode: 'bigint' }).notNull(), // relation
+    organization_id: bigint({ mode: 'bigint' }).notNull(), // relation
+  },
+  table => [check('check_price', sql`${table.plan_price} >= 20000`)],
+);
 
-export const planRequestsTable = pgTable('plan_requests', {
-  ...commonFields,
-  number_of_sessions: integer().notNull(),
-  description: varchar().notNull(),
-  left_side_photo: varchar().notNull(),
-  right_side_photo: varchar().notNull(),
-  front_side_photo: varchar().notNull(),
-  back_side_photo: varchar().notNull(),
-});
+export const planRequestsTable = pgTable(
+  'plan_requests',
+  {
+    id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+    deleted_at: timestamp({ withTimezone: true }).notNull(),
+    weight: smallint().notNull(),
+    number_of_sessions: smallint().notNull(),
+    description: varchar().notNull(),
+    left_side_photo: varchar().notNull(),
+    right_side_photo: varchar().notNull(),
+    front_side_photo: varchar().notNull(),
+    back_side_photo: varchar().notNull(),
+  },
+  table => [
+    check('check_number_of_sessions', sql`${table.number_of_sessions} >= 1`),
+    check('check_min_weight', sql`${table.weight} > 10`),
+    check('check_max_weight', sql`${table.weight} < 200`),
+  ],
+);
 
-export const plansTable = pgTable('plans', {
-  ...commonFields,
-  coach_id: integer().notNull(), // relation
-  customer_id: integer().notNull(), // relation
-  request_id: integer().notNull(), // relation
-  price: integer().notNull(),
-  status: varchar().notNull(), // published, pending-payment, draft or ...
-});
+const planStatus = pgEnum('plan_status', ['pending', 'complete']);
+
+export const plansTable = pgTable(
+  'plans',
+  {
+    id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+    created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updated_at: timestamp({ withTimezone: true })
+      .notNull()
+      .$onUpdate(() => new Date()),
+    deleted_at: timestamp({ withTimezone: true }).notNull(),
+    coach_id: bigint({ mode: 'bigint' }).notNull(), // relation
+    customer_id: bigint({ mode: 'bigint' }).notNull(), // relation
+    request_id: bigint({ mode: 'bigint' }).notNull(), // relation
+    price: integer().notNull(),
+    status: planStatus().notNull(),
+  },
+  table => [check('check_price', sql`${table.price} >= 20000`)],
+);
 
 export const planSessionsTable = pgTable('plan_sessions', {
-  ...commonFields,
-  plan_id: integer().notNull(), // relation
-  title: varchar().notNull(),
+  id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true })
+    .notNull()
+    .$onUpdate(() => new Date()),
+  deleted_at: timestamp({ withTimezone: true }).notNull(),
+  plan_id: bigint({ mode: 'bigint' }).notNull(), // relation
+  title: varchar({ length: 128 }).notNull(),
   description: varchar().notNull(),
 });
 
 export const planSessionExercisesTable = pgTable('plan_session_exercises', {
-  ...commonFields,
-  plan_session_id: integer().notNull(), // relation
-  exercise_id: integer().notNull(), // relation
+  id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true })
+    .notNull()
+    .$onUpdate(() => new Date()),
+  deleted_at: timestamp({ withTimezone: true }).notNull(),
+  plan_session_id: bigint({ mode: 'bigint' }).notNull(), // relation
+  exercise_id: bigint({ mode: 'bigint' }).notNull(), // relation
   notes: varchar().notNull(),
 });
 
-const planSessionExerciseSetsType = pgEnum('type', ['time', 'drop', 'normal', 'range']);
-export const planSessionExerciseSetsTable = pgTable('plan-session-exercise-sets', {
-  ...commonFields,
-  plan_session_exercise_id: integer().notNull(), // relation
-  type: planSessionExerciseSetsType(),
+const planSessionExerciseSetsType = pgEnum('plan_session_exercise_sets_type', ['time', 'drop', 'normal', 'range']);
+
+export const planSessionExerciseSetsTable = pgTable('plan_session_exercise_sets', {
+  id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true })
+    .notNull()
+    .$onUpdate(() => new Date()),
+  deleted_at: timestamp({ withTimezone: true }).notNull(),
+  plan_session_exercise_id: bigint({ mode: 'bigint' }).notNull(), // relation
+  type: planSessionExerciseSetsType().notNull(),
   order: integer().notNull(),
   value: integer().notNull(),
 });
 
 export const paymentsTable = pgTable('payments', {
-  ...commonFields,
-  plan_id: integer().notNull(), // relation
+  id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true })
+    .notNull()
+    .$onUpdate(() => new Date()),
+  deleted_at: timestamp({ withTimezone: true }).notNull(),
+  plan_id: bigint({ mode: 'bigint' }).notNull(), // relation
   // status ??
 });
 
-const exerciseType = pgEnum('type', ['reps', 'time']);
+const exerciseType = pgEnum('exercise_type', ['reps', 'time']);
+
 export const exercisesTable = pgTable('exercises', {
-  ...commonFields,
+  id: bigint({ mode: 'bigint' }).primaryKey().generatedAlwaysAsIdentity(),
+  created_at: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updated_at: timestamp({ withTimezone: true })
+    .notNull()
+    .$onUpdate(() => new Date()),
+  deleted_at: timestamp({ withTimezone: true }).notNull(),
   name: varchar().notNull(),
   image_url: varchar().notNull(),
   description: varchar().notNull(),
