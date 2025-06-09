@@ -1,0 +1,130 @@
+table coaches {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  plan_price integer [not null]
+  biography varchar(512) [not null]
+  description varchar(512) [not null]
+  user_id bigint [not null]
+  organization_id bigint [not null]
+}
+
+table exercises {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  name varchar(128) [not null]
+  image_url varchar(512) [not null]
+  description varchar(512) [not null]
+  type exercise_type [not null]
+}
+
+table organizations {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  name varchar(128) [unique]
+}
+
+table payments {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  plan_id bigint [not null]
+  status plan_status [not null]
+}
+
+table plan_requests {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  weight smallint [not null]
+  number_of_sessions smallint [not null]
+  description varchar(512) [not null]
+  left_side_photo varchar(512) [not null]
+  right_side_photo varchar(512) [not null]
+  front_side_photo varchar(512) [not null]
+  back_side_photo varchar(512) [not null]
+}
+
+table plan_session_exercise_sets {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  plan_session_exercise_id bigint [not null]
+  type plan_session_exercise_sets_type [not null]
+  order integer [not null]
+  value integer [not null]
+}
+
+table plan_session_exercises {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  plan_session_id bigint [not null]
+  exercise_id bigint [not null]
+  notes varchar(512) [not null]
+}
+
+table plan_sessions {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  plan_id bigint [not null]
+  title varchar(128) [not null]
+  description varchar [not null]
+}
+
+table plans {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  coach_id bigint [not null]
+  customer_id bigint [not null]
+  request_id bigint [not null]
+  price integer [not null]
+  status plan_status [not null]
+}
+
+table users {
+  id bigint [pk, not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  deleted_at "timestamp with time zone" [not null]
+  email varchar [not null, unique]
+  phone varchar(11) [unique]
+  full_name varchar(128) [not null]
+  avatar_url varchar(512) [not null]
+  height smallint [not null]
+  gender gender [default: 'unknown']
+  birthday date [not null]
+}
+
+ref: coaches.user_id - users.id
+
+ref: coaches.organization_id - organizations.id
+
+ref: payments.plan_id - plans.id
+
+ref: plan_session_exercise_sets.plan_session_exercise_id - plan_session_exercises.id
+
+ref: plan_session_exercises.plan_session_id - plan_sessions.id
+
+ref: plan_session_exercises.exercise_id - exercises.id
+
+ref: plan_sessions.plan_id - plans.id
+
+ref: plans.coach_id - coaches.id
+
+ref: plans.customer_id - users.id
+
+ref: plans.request_id - plan_requests.id
