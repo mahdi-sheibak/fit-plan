@@ -126,6 +126,9 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.1.6(@types/react@19.1.6)
+      drizzle-dbml-generator:
+        specifier: 0.10.0
+        version: 0.10.0(drizzle-orm@0.44.2(@libsql/client@0.15.8)(postgres@3.4.7))
       drizzle-kit:
         specifier: 0.31.1
         version: 0.31.1
@@ -1910,6 +1913,11 @@ packages:
   dotenv@16.5.0:
     resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
     engines: {node: '>=12'}
+
+  drizzle-dbml-generator@0.10.0:
+    resolution: {integrity: sha512-cMZq9E3U3RlmE0uBeXyc6oWJ0royOkC6HiTlc9LDeMe+W87poZTzKoNYUyAxZrs4Q1RQtob+cGKiefV4ZoI8HA==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
 
   drizzle-kit@0.31.1:
     resolution: {integrity: sha512-PUjYKWtzOzPtdtQlTHQG3qfv4Y0XT8+Eas6UbxCmxTj7qgMf+39dDujf1BP1I+qqZtw9uzwTh8jYtkMuCq+B0Q==}
@@ -5028,6 +5036,10 @@ snapshots:
       path-type: 4.0.0
 
   dotenv@16.5.0: {}
+
+  drizzle-dbml-generator@0.10.0(drizzle-orm@0.44.2(@libsql/client@0.15.8)(postgres@3.4.7)):
+    dependencies:
+      drizzle-orm: 0.44.2(@libsql/client@0.15.8)(postgres@3.4.7)
 
   drizzle-kit@0.31.1:
     dependencies:
